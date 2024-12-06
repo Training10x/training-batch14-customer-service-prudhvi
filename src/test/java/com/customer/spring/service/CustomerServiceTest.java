@@ -84,6 +84,42 @@ class CustomerServiceTest {
     }
 
     @Test
+    void createCustomer_ShouldCreateCustomer_WhenPhoneNumberNotInUse() {
+        // Arrange
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setId(1L);
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail("test@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setAddress("123 Main Street");
+        customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus("enabled");
+
+        Customer customerEntity = new Customer();
+        customerEntity.setId(1L);
+        customerEntity.setName("John Doe");
+        customerEntity.setCustomerEmail("test@example.com");
+
+        when(customerRepository.findByCustomerPhoneNumber(anyString()))
+                .thenReturn(Optional.empty());
+        when(customerMapper.toEntity(any(CustomerDTO.class)))
+                .thenReturn(customerEntity);
+        when(customerRepository.save(any(Customer.class)))
+                .thenReturn(customerEntity);
+        when(customerMapper.toDto(any(Customer.class)))
+                .thenReturn(customerDTO);
+
+        // Act
+        long id = customerService.createCustomer(customerDTO);
+
+        // Assert
+        assertEquals(1L, id);
+        verify(customerRepository, times(1)).findByCustomerPhoneNumber("1234567890");
+        verify(customerRepository, times(1)).save(customerEntity);
+    }
+
+    @Test
     void createCustomer_ShouldThrowConflictException_WhenEmailAlreadyInUse() {
         // Arrange
         CustomerDTO customerDTO = new CustomerDTO();
@@ -100,6 +136,26 @@ class CustomerServiceTest {
 
         assertEquals("Email address already in use: test@example.com", exception.getMessage());
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
+        verify(customerRepository, never()).save(any());
+    }
+
+    @Test
+    void createCustomer_ShouldThrowConflictException_WhenPhoneNumberAlreadyInUse() {
+        // Arrange
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setCustomerPhoneNumber("1234567890");
+
+        Customer existingCustomer = new Customer();
+        existingCustomer.setCustomerPhoneNumber("1234567890");
+
+        when(customerRepository.findByCustomerPhoneNumber("1234567890"))
+                .thenReturn(Optional.of(existingCustomer));
+
+        ConflictException exception = assertThrows(ConflictException.class,
+                () -> customerService.createCustomer(customerDTO));
+
+        assertEquals("Phone number already in use: 1234567890", exception.getMessage());
+        verify(customerRepository, times(1)).findByCustomerPhoneNumber("1234567890");
         verify(customerRepository, never()).save(any());
     }
 

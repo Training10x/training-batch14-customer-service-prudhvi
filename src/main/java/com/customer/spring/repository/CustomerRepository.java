@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByCustomerEmail(String customerEmail);
+    Optional<Customer> findByCustomerPhoneNumber(String customerPhoneNumber);
 
     @Query("SELECT c FROM Customer c WHERE " +
             "(:name IS NULL OR c.name LIKE %:name%) AND " +

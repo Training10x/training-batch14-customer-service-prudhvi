@@ -97,8 +97,12 @@ public class CustomerService {
     private void validateCustomerDTO(CustomerDTO customerDTO) {
         // Check if the email is already in use
         Optional<Customer> existingCustomer = customerRepository.findByCustomerEmail(customerDTO.getCustomerEmail());
+        Optional<Customer> existingCustomerPhoneNumber = customerRepository.findByCustomerPhoneNumber(customerDTO.getCustomerPhoneNumber());
         if (existingCustomer.isPresent()) {
             throw new ConflictException("Email address already in use: " + customerDTO.getCustomerEmail());
+        }
+        if (existingCustomerPhoneNumber.isPresent()) {
+            throw new ConflictException("Phone number already in use: " + customerDTO.getCustomerPhoneNumber());
         }
 
         // Set default values for missing data
