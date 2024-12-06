@@ -81,7 +81,9 @@ public class CustomerService {
         List<CustomerDTO> results = customersPage.getContent().stream()
                 .map(customerMapper::toDto)
                 .toList();
-
+        if(results.isEmpty()){
+            throw new InvalidRequestStateException("No results the provided data. Try again.");
+        }
         Map<String, Object> response = new HashMap<>();
         response.put("total_count", customersPage.getTotalElements());
         response.put("page_count", customersPage.getTotalPages());
