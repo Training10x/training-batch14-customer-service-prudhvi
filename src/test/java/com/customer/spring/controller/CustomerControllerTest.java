@@ -47,11 +47,15 @@ class CustomerControllerTest {
 
         when(customerService.createCustomer(customerDTO)).thenReturn(expectedId);
 
-        long response = customerController.createCustomer(customerDTO);
+        ResponseEntity<Map<String, Object>> response = customerController.createCustomer(customerDTO);
 
-        assertEquals(expectedId, response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedId, response.getBody().get("id"));
+        assertEquals("Customer created successfully", response.getBody().get("message"));
         verify(customerService, times(1)).createCustomer(customerDTO);
     }
+
 
     @Test
     void updateCustomer() {

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -30,8 +31,14 @@ public class CustomerController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public long createCustomer(@RequestBody CustomerDTO customerDTO) {
-        return customerService.createCustomer(customerDTO);
+    public ResponseEntity<Map<String, Object>> createCustomer(@RequestBody CustomerDTO customerDTO) {
+        long customerId = customerService.createCustomer(customerDTO);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", customerId);
+        response.put("message", "Customer created successfully");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("{id}")

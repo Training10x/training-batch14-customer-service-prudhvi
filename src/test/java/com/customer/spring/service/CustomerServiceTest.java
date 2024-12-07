@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -385,6 +386,7 @@ class CustomerServiceTest {
     void updateCustomer_ShouldThrowEntityNotFoundException_WhenCustomerDoesNotExist() {
         long customerId = 1L;
         CustomerDTO requestDTO = new CustomerDTO();
+        requestDTO.setName("SampleName");
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
@@ -395,6 +397,22 @@ class CustomerServiceTest {
         verify(customerRepository, times(1)).findById(customerId);
         verify(customerRepository, never()).save(any());
         verify(customerMapper, never()).toDto(any());
+    }
+
+    @Test
+    void testUpdateCustomer_InvalidName_ThrowsInvalidRequestStateException() {
+        long customerId = 1L;
+        CustomerDTO invalidCustomerDTO = new CustomerDTO();
+        invalidCustomerDTO.setName(""); // Invalid name (empty string)
+
+        InvalidRequestStateException exception = assertThrows(
+                InvalidRequestStateException.class,
+                () -> customerService.updateCustomer(customerId, invalidCustomerDTO)
+        );
+
+        assertEquals("The name is either not entered or empty string", exception.getMessage());
+
+        verifyNoInteractions(customerRepository);
     }
 
     @Test
@@ -519,8 +537,7 @@ class CustomerServiceTest {
         searchCriteria.setAddress(address);
 
         // Mock behavior
-        when(customerRepository.searchCustomers(eq(name), eq(customerEmail), eq(industry), eq(companySize),
-                eq(customerPhoneNumber), eq(status), eq(address), any(Pageable.class)))
+        when(customerRepository.searchCustomers(eq(searchCriteria), any(Pageable.class)))
                 .thenReturn(expectedPage);
 
         when(customerMapper.toDto(any(Customer.class))).thenReturn(customerDto1, customerDto2);
@@ -538,12 +555,165 @@ class CustomerServiceTest {
         assertEquals(0, response.get("current_page"));
         assertEquals(expectedDtos, response.get("results"));
 
-        verify(customerRepository, times(1)).searchCustomers(name, customerEmail, industry, companySize,
-                customerPhoneNumber, status, address, pageable);
+
+
+        verify(customerRepository, times(1)).searchCustomers(searchCriteria, pageable);
 
 
         verify(customerMapper, times(2)).toDto(any(Customer.class));
     }
+
+    @Test
+    void testSearchCustomersThrowsInvalidRequestStateException() {
+        String name = "NonExistentName";
+        String customerEmail = "nonexistent@example.com";
+        String industry = "UnknownIndustry";
+        Integer companySize = 1000;
+        String customerPhoneNumber = "0000000000";
+        String status = "inactive";
+        String address = "Unknown Address";
+
+        CustomerSearchCriteria searchCriteria = new CustomerSearchCriteria();
+        searchCriteria.setName(name);
+        searchCriteria.setCustomerEmail(customerEmail);
+        searchCriteria.setIndustry(industry);
+        searchCriteria.setStatus(status);
+        searchCriteria.setCustomerPhoneNumber(customerPhoneNumber);
+        searchCriteria.setCompanySize(companySize);
+        searchCriteria.setAddress(address);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(customerRepository.searchCustomers(eq(searchCriteria), eq(pageable)))
+                .thenReturn(Page.empty());
+
+        InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
+                () -> customerService.searchCustomers(searchCriteria, 0, 10));
+
+        assertEquals("No results with the provided data. Try again.", exception.getMessage());
+
+        verify(customerRepository, times(1)).searchCustomers(eq(searchCriteria), eq(pageable));
+        verifyNoInteractions(customerMapper);
+    }
+
+    @Test
+    void testSearchCustomers_validData() {
+        // Arrange
+        CustomerSearchCriteria criteria = new CustomerSearchCriteria();
+        criteria.setName("John");
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setName("John Doe");
+        customer.setCustomerEmail("john@example.com");
+        customer.setIndustry("Tech");
+        customer.setCompanySize(50);
+        customer.setCustomerPhoneNumber("123-456-7890");
+        customer.setStatus("Active");
+        customer.setAddress("NY");
+
+        List<Customer> customers = List.of(customer);
+
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setId(1L);
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail("john@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setCustomerPhoneNumber("123-456-7890");
+        customerDTO.setStatus("Active");
+        customerDTO.setAddress("NY");
+
+        List<CustomerDTO> customerDTOs = List.of(customerDTO);
+
+        Page<Customer> customersPage = new PageImpl<>(customers, pageable, customers.size());
+
+        Mockito.when(customerRepository.searchCustomers(criteria, pageable)).thenReturn(customersPage);
+        Mockito.when(customerMapper.toDto(Mockito.any(Customer.class))).thenReturn(customerDTOs.get(0));
+
+        Map<String, Object> response = customerService.searchCustomers(criteria, 0, 10);
+
+        assertNotNull(response);
+        assertEquals(1L, response.get("total_count"));
+        assertEquals(1, response.get("page_count"));
+        assertEquals(0, response.get("current_page"));
+        assertEquals(customerDTOs, response.get("results"));
+
+        Mockito.verify(customerRepository, Mockito.times(1)).searchCustomers(criteria, pageable);
+        Mockito.verify(customerMapper, Mockito.times(1)).toDto(Mockito.any(Customer.class));
+    }
+
+    @Test
+    void testSearchCustomers_emptyResults() {
+        CustomerSearchCriteria criteria = new CustomerSearchCriteria();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Customer> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        Mockito.when(customerRepository.searchCustomers(criteria, pageable)).thenReturn(emptyPage);
+
+        InvalidRequestStateException exception = assertThrows(
+                InvalidRequestStateException.class,
+                () -> customerService.searchCustomers(criteria, 0, 10)
+        );
+
+        assertEquals("No results with the provided data. Try again.", exception.getMessage());
+
+        Mockito.verify(customerRepository, Mockito.times(1)).searchCustomers(criteria, pageable);
+        Mockito.verify(customerMapper, Mockito.never()).toDto(Mockito.any());
+    }
+
+    @Test
+    void testSearchCustomers_pagination() {
+        CustomerSearchCriteria criteria = new CustomerSearchCriteria();
+        criteria.setName("John");
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setName("John Doe");
+        customer.setCustomerEmail("john@example.com");
+        customer.setIndustry("Tech");
+        customer.setCompanySize(50);
+        customer.setCustomerPhoneNumber("123-456-7890");
+        customer.setStatus("Active");
+        customer.setAddress("NY");
+
+        List<Customer> customers = List.of(customer);
+
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setId(1L);
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail("john@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setCustomerPhoneNumber("123-456-7890");
+        customerDTO.setStatus("Active");
+        customerDTO.setAddress("NY");
+
+        List<CustomerDTO> customerDTOs = List.of(customerDTO);
+
+        // Simulate more total records for pagination
+        Page<Customer> customersPage = new PageImpl<>(customers, pageable, 20);
+
+        Mockito.when(customerRepository.searchCustomers(criteria, pageable)).thenReturn(customersPage);
+        Mockito.when(customerMapper.toDto(Mockito.any(Customer.class))).thenReturn(customerDTOs.get(0));
+
+        // Act
+        Map<String, Object> response = customerService.searchCustomers(criteria, 0, 10);
+
+        // Assert
+        assertEquals(20L, response.get("total_count"));
+        assertEquals(2, response.get("page_count"));
+        assertEquals(0, response.get("current_page"));
+        assertEquals(customerDTOs, response.get("results"));
+
+        Mockito.verify(customerRepository, Mockito.times(1)).searchCustomers(criteria, pageable);
+        Mockito.verify(customerMapper, Mockito.times(1)).toDto(Mockito.any(Customer.class));
+    }
+
+
+
 
 
 }

@@ -30,17 +30,18 @@ public class CustomerService {
     }
 
     public long createCustomer(CustomerDTO customerDTO) {
-        validateCustomerDTO(customerDTO); // Validate all necessary fields
+        validateCustomerDTO(customerDTO);
 
-        // Map DTO to Entity
         Customer customer = customerMapper.toEntity(customerDTO);
 
-        // Save customer entity and return the ID
         CustomerDTO result = customerMapper.toDto(customerRepository.save(customer));
         return result.getId();
     }
 
     public CustomerDTO updateCustomer(long id, CustomerDTO customerDTO) {
+        if(isNullOrEmpty(customerDTO.getName())){
+            throw new InvalidRequestStateException("The name is either not entered or empty string");
+        }
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Customer with ID " + id + " not found in the Database"));
 
@@ -50,6 +51,7 @@ public class CustomerService {
     }
 
     public String statusToggle(long id, String status){
+
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Customer with ID " + id + " not found in the Database"));
         if (!status.equalsIgnoreCase("enabled") && !status.equalsIgnoreCase("disabled")) {
@@ -68,13 +70,7 @@ public class CustomerService {
     public Map<String, Object> searchCustomers(CustomerSearchCriteria criteria, int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
         Page<Customer> customersPage = customerRepository.searchCustomers(
-                criteria.getName(),
-                criteria.getCustomerEmail(),
-                criteria.getIndustry(),
-                criteria.getCompanySize(),
-                criteria.getCustomerPhoneNumber(),
-                criteria.getStatus(),
-                criteria.getAddress(),
+                criteria,
                 pageable
         );
 
@@ -82,7 +78,7 @@ public class CustomerService {
                 .map(customerMapper::toDto)
                 .toList();
         if(results.isEmpty()){
-            throw new InvalidRequestStateException("No results the provided data. Try again.");
+            throw new InvalidRequestStateException("No results with the provided data. Try again.");
         }
         Map<String, Object> response = new HashMap<>();
         response.put("total_count", customersPage.getTotalElements());
