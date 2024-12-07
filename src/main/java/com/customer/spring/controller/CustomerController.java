@@ -48,12 +48,14 @@ public class CustomerController {
     }
 
     @PatchMapping("{id}")
-    public ResponseEntity<String> statusToggle(@PathVariable long id, @RequestParam String status){
-        if (!status.equalsIgnoreCase("enabled") && !status.equalsIgnoreCase("disabled")) {
-            throw new IllegalArgumentException("Invalid status value: " + status);
-        }
-        return ResponseEntity.ok(customerService.statusToggle(id, status));
+    public ResponseEntity<Map<String, Object>> statusToggle(@PathVariable long id, @RequestParam String status){
+        String statesToggle = customerService.statusToggle(id, status);
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", statesToggle);
+
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/search")

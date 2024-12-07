@@ -93,7 +93,6 @@ public class CustomerService {
 
     //Helper methods
     private void validateCustomerDTO(CustomerDTO customerDTO) {
-        // Check if the email is already in use
         Optional<Customer> existingCustomer = customerRepository.findByCustomerEmail(customerDTO.getCustomerEmail());
         Optional<Customer> existingCustomerPhoneNumber = customerRepository.findByCustomerPhoneNumber(customerDTO.getCustomerPhoneNumber());
         if (existingCustomer.isPresent()) {
@@ -102,11 +101,8 @@ public class CustomerService {
         if (existingCustomerPhoneNumber.isPresent()) {
             throw new ConflictException("Phone number already in use: " + customerDTO.getCustomerPhoneNumber());
         }
-
-        // Set default values for missing data
         setDefaultValuesIfNull(customerDTO);
 
-        // Validate required fields
         if (isNullOrEmpty(customerDTO.getName())) {
             throw new InvalidRequestStateException("The name is either not entered or empty string");
         }

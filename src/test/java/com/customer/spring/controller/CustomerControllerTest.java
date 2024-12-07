@@ -7,10 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,33 +86,51 @@ class CustomerControllerTest {
     }
 
     @Test
-    void statusToggle_ShouldUpdateStatus_WhenValidStatusProvided() {
+    void statusToggle_ShouldReturnEnabledMessage_WhenStatusIsEnabled() {
+        // Arrange
         long customerId = 1L;
         String newStatus = "enabled";
-        String expectedResponse = "Status updated to enabled";
+        String expectedMessage = "Customer details enabled successfully";
+        Map<String, Object> expectedResponseMap = new HashMap<>();
+        expectedResponseMap.put("status", expectedMessage);
 
-        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedResponse);
+        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedMessage);
 
-        ResponseEntity<String> response = customerController.statusToggle(customerId, newStatus);
+        // Act
+        ResponseEntity<Map<String, Object>> response = customerController.statusToggle(customerId, newStatus);
 
+        // Assert
         assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(expectedResponseMap, response.getBody());
 
         verify(customerService, times(1)).statusToggle(customerId, newStatus);
     }
 
     @Test
-    void statusToggle_ShouldThrowIllegalArgumentException_WhenInvalidStatusProvided() {
-        long customerId = 1L;
-        String invalidStatus = "invalid";
+    void statusToggle_ShouldReturnDisabledMessage_WhenStatusIsDisabled() {
+        // Arrange
+        long customerId = 2L;
+        String newStatus = "disabled";
+        String expectedMessage = "Customer details disabled successfully";
+        Map<String, Object> expectedResponseMap = new HashMap<>();
+        expectedResponseMap.put("status", expectedMessage);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> customerController.statusToggle(customerId, invalidStatus));
+        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedMessage);
 
-        assertEquals("Invalid status value: " + invalidStatus, exception.getMessage());
-        verify(customerService, never()).statusToggle(anyLong(), anyString());
+        // Act
+        ResponseEntity<Map<String, Object>> response = customerController.statusToggle(customerId, newStatus);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(expectedResponseMap, response.getBody());
+
+        verify(customerService, times(1)).statusToggle(customerId, newStatus);
     }
+
+
+
 
     @Test
     void searchCustomers() {
