@@ -584,7 +584,7 @@ class CustomerServiceTest {
 
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(customerRepository.searchCustomers(eq(searchCriteria), eq(pageable)))
+        when(customerRepository.searchCustomers((searchCriteria), (pageable)))
                 .thenReturn(Page.empty());
 
         InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
@@ -592,7 +592,7 @@ class CustomerServiceTest {
 
         assertEquals("No results with the provided data. Try again.", exception.getMessage());
 
-        verify(customerRepository, times(1)).searchCustomers(eq(searchCriteria), eq(pageable));
+        verify(customerRepository, times(1)).searchCustomers((searchCriteria),(pageable));
         verifyNoInteractions(customerMapper);
     }
 
