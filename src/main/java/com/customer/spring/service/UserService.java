@@ -1,10 +1,8 @@
 package com.customer.spring.service;
 
-import com.customer.spring.entity.Customer;
 import com.customer.spring.entity.Users;
 import com.customer.spring.exception.ConflictException;
 import com.customer.spring.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,14 +14,17 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final AuthenticationManager authManager;
+    private final JWTService jwtService;
 
-    @Autowired
-    AuthenticationManager authManager;
-
-    @Autowired
-    private JWTService jwtService;
+    public UserService(UserRepository userRepository,
+                       AuthenticationManager authManager,
+                       JWTService jwtService) {
+        this.userRepository = userRepository;
+        this.authManager = authManager;
+        this.jwtService = jwtService;
+    }
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 

@@ -2,7 +2,6 @@ package com.customer.spring.controller;
 
 import com.customer.spring.entity.Users;
 import com.customer.spring.service.UserService;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,8 +9,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/register")
     public Users register(@RequestBody Users user) {
