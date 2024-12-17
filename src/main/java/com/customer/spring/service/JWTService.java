@@ -1,5 +1,6 @@
 package com.customer.spring.service;
 
+import com.customer.spring.exception.JWTKeyGenerationException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -19,15 +20,15 @@ public class JWTService {
 
     private String secretKey = "";
 
-    public JWTService() throws NoSuchAlgorithmException {
+    public JWTService() throws JWTKeyGenerationException  {
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
             SecretKey sk = keyGen.generateKey();
             secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
 
 
-        }catch (NoSuchAlgorithmException e){
-            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new JWTKeyGenerationException("Failed to generate secret key for JWT.", e);
         }
 
     }
