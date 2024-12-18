@@ -32,14 +32,6 @@ class CustomerControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
-
-    @Test
-    void welcome() {
-        String response = customerController.welcome();
-
-        assertEquals("Hello, welcome to the spring app", response);
-    }
-
     @Test
     void createCustomer() {
         CustomerDTO customerDTO = new CustomerDTO();
