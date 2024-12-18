@@ -2,38 +2,15 @@ package com.customer.spring.mapper;
 
 import com.customer.spring.dto.CustomerDTO;
 import com.customer.spring.entity.Customer;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-@Component
-public class CustomerMapper {
-    public CustomerDTO toDto(Customer customer){
-        CustomerDTO dto = new CustomerDTO();
-        dto.setId(customer.getId());
-        dto.setName(customer.getName());
-        dto.setIndustry(customer.getIndustry());
-        dto.setCompanySize(customer.getCompanySize());
-        dto.setCustomerEmail(customer.getCustomerEmail());
-        dto.setCustomerPhoneNumber(customer.getCustomerPhoneNumber());
-        dto.setAddress(customer.getAddress());
-        dto.setOtherCustomerData(customer.getOtherCustomerData());
-        dto.setStatus(customer.getStatus());
+@Mapper(componentModel = "spring")
+public interface CustomerMapper {
 
-        return dto;
-    }
+    CustomerMapper INSTANCE = Mappers.getMapper(CustomerMapper.class);
 
-    public Customer toEntity(CustomerDTO dto){
-        Customer customer = new Customer();
+    CustomerDTO toDto(Customer customer);
 
-        customer.setId(dto.getId());
-        customer.setName(dto.getName());
-        customer.setIndustry(dto.getIndustry());
-        customer.setCompanySize(dto.getCompanySize());
-        customer.setCustomerEmail(dto.getCustomerEmail());
-        customer.setCustomerPhoneNumber(dto.getCustomerPhoneNumber());
-        customer.setAddress(dto.getAddress());
-        customer.setOtherCustomerData(dto.getOtherCustomerData());
-        customer.setStatus(dto.getStatus());
-
-        return customer;
-    }
+    Customer toEntity(CustomerDTO dto);
 }

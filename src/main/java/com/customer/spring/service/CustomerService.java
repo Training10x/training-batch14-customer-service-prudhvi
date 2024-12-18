@@ -93,14 +93,7 @@ public class CustomerService {
 
     //Helper methods
     private void validateCustomerDTO(CustomerDTO customerDTO) {
-        Optional<Customer> existingCustomer = customerRepository.findByCustomerEmail(customerDTO.getCustomerEmail());
-        Optional<Customer> existingCustomerPhoneNumber = customerRepository.findByCustomerPhoneNumber(customerDTO.getCustomerPhoneNumber());
-        if (existingCustomer.isPresent()) {
-            throw new ConflictException("Email address already in use: " + customerDTO.getCustomerEmail());
-        }
-        if (existingCustomerPhoneNumber.isPresent()) {
-            throw new ConflictException("Phone number already in use: " + customerDTO.getCustomerPhoneNumber());
-        }
+
         setDefaultValuesIfNull(customerDTO);
 
         if (isNullOrEmpty(customerDTO.getName())) {
@@ -118,11 +111,22 @@ public class CustomerService {
         if (isNullOrEmpty(customerDTO.getCustomerPhoneNumber())) {
             throw new InvalidRequestStateException("Please enter the phone number.");
         }
+        if (isNullOrEmpty(customerDTO.getCustomerEmail())) {
+            throw new InvalidRequestStateException("Please enter the Email address.");
+        }
         if (isNullOrEmpty(customerDTO.getStatus())) {
             throw new InvalidRequestStateException("Please enter the status.");
         }
         if (!isValidStatus(customerDTO.getStatus())) {
             throw new InvalidRequestStateException("Status should be either 'enabled' or 'disabled'");
+        }
+        Optional<Customer> existingCustomer = customerRepository.findByCustomerEmail(customerDTO.getCustomerEmail());
+        Optional<Customer> existingCustomerPhoneNumber = customerRepository.findByCustomerPhoneNumber(customerDTO.getCustomerPhoneNumber());
+        if (existingCustomer.isPresent()) {
+            throw new ConflictException("Email address already in use: " + customerDTO.getCustomerEmail());
+        }
+        if (existingCustomerPhoneNumber.isPresent()) {
+            throw new ConflictException("Phone number already in use: " + customerDTO.getCustomerPhoneNumber());
         }
     }
 
