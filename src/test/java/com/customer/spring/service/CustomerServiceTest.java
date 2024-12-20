@@ -11,6 +11,9 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -24,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -46,6 +50,68 @@ class CustomerServiceTest {
 
     @AfterEach
     void tearDown() { // Yet to do.
+    }
+
+    // Parameterized Test for Missing or Invalid Fields
+    @ParameterizedTest
+    @MethodSource("provideInvalidCustomerDTOs")
+    void createCustomer_ShouldThrowInvalidRequestStateException_WhenFieldIsMissingOrInvalid(CustomerDTO customerDTO, String expectedMessage) {
+        // Act & Assert
+        InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
+                () -> customerService.createCustomer(customerDTO));
+
+        // Assert exception message
+        assertEquals(expectedMessage, exception.getMessage());
+
+        // Verify no repository interactions
+        verify(customerRepository, never()).findByCustomerEmail(anyString());
+        verify(customerRepository, never()).save(any());
+    }
+
+    // Provide test cases for invalid fields
+    static Stream<Arguments> provideInvalidCustomerDTOs() {
+        return Stream.of(
+                Arguments.of(createCustomerDTOWithNullEmail(), "Please enter the Email address."),
+                Arguments.of(createCustomerDTOWithNullStatus(), "Please enter the status."),
+                Arguments.of(createCustomerDTOWithInvalidStatus(), "Status should be either 'enabled' or 'disabled'")
+        );
+    }
+
+    // Helper methods to create customer DTOs with invalid fields
+    private static CustomerDTO createCustomerDTOWithNullEmail() {
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail(null);  // Email is missing
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setAddress("123 Main Street");
+        customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus("enabled");
+        return customerDTO;
+    }
+
+    private static CustomerDTO createCustomerDTOWithNullStatus() {
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail("test@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setAddress("123 Main Street");
+        customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus(null);  // Status is missing
+        return customerDTO;
+    }
+
+    private static CustomerDTO createCustomerDTOWithInvalidStatus() {
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail("test@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setAddress("123 Main Street");
+        customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus("invalid");  // Invalid status value
+        return customerDTO;
     }
 
     @Test
@@ -83,6 +149,7 @@ class CustomerServiceTest {
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
         verify(customerRepository, times(1)).save(customerEntity);
     }
+
 
     @Test
     void createCustomer_ShouldCreateCustomer_WhenPhoneNumberNotInUse() {
@@ -124,7 +191,13 @@ class CustomerServiceTest {
     void createCustomer_ShouldThrowConflictException_WhenEmailAlreadyInUse() {
         // Arrange
         CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setName("John Doe");
         customerDTO.setCustomerEmail("test@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setAddress("123 Main Street");
+        customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus("enabled");
 
         Customer existingCustomer = new Customer();
         existingCustomer.setCustomerEmail("test@example.com");
@@ -132,19 +205,30 @@ class CustomerServiceTest {
         when(customerRepository.findByCustomerEmail("test@example.com"))
                 .thenReturn(Optional.of(existingCustomer));
 
+        // Act & Assert
         ConflictException exception = assertThrows(ConflictException.class,
                 () -> customerService.createCustomer(customerDTO));
 
+        // Verify exception message
         assertEquals("Email address already in use: test@example.com", exception.getMessage());
+
+        // Verify repository interactions
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
         verify(customerRepository, never()).save(any());
     }
+
 
     @Test
     void createCustomer_ShouldThrowConflictException_WhenPhoneNumberAlreadyInUse() {
         // Arrange
         CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setName("John Doe");
+        customerDTO.setCustomerEmail("test@example.com");
+        customerDTO.setIndustry("Tech");
+        customerDTO.setCompanySize(50);
+        customerDTO.setAddress("123 Main Street");
         customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus("enabled");
 
         Customer existingCustomer = new Customer();
         existingCustomer.setCustomerPhoneNumber("1234567890");
@@ -152,13 +236,18 @@ class CustomerServiceTest {
         when(customerRepository.findByCustomerPhoneNumber("1234567890"))
                 .thenReturn(Optional.of(existingCustomer));
 
+        // Act & Assert
         ConflictException exception = assertThrows(ConflictException.class,
                 () -> customerService.createCustomer(customerDTO));
 
+        // Verify exception message
         assertEquals("Phone number already in use: 1234567890", exception.getMessage());
+
+        // Verify repository interactions
         verify(customerRepository, times(1)).findByCustomerPhoneNumber("1234567890");
         verify(customerRepository, never()).save(any());
     }
+
 
     @Test
     void createCustomer_ShouldThrowInvalidRequestStateException_WhenRequiredFieldsAreMissing() {
@@ -224,16 +313,20 @@ class CustomerServiceTest {
         CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setName("John Doe");
         customerDTO.setCustomerEmail("test@example.com");
-        customerDTO.setIndustry(null);
+        customerDTO.setIndustry(null);  // Industry is missing
 
         // Act & Assert
         InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
                 () -> customerService.createCustomer(customerDTO));
 
+        // Assert exception message
         assertEquals("Please enter the Industry.", exception.getMessage());
-        verify(customerRepository, times(1)).findByCustomerEmail(anyString());
+
+        // Verify no repository interactions (findByCustomerEmail and save)
+        verify(customerRepository, never()).findByCustomerEmail(anyString());
         verify(customerRepository, never()).save(any());
     }
+
 
     @Test
     void createCustomer_ShouldThrowInvalidRequestStateException_WhenCompanySizeIsInvalid() {
@@ -243,15 +336,24 @@ class CustomerServiceTest {
         customerDTO.setCustomerEmail("test@example.com");
         customerDTO.setIndustry("Tech");
         customerDTO.setCompanySize(0); // Invalid size
+        customerDTO.setAddress("123 Main Street");
+        customerDTO.setCustomerPhoneNumber("1234567890");
+        customerDTO.setStatus("enabled");
 
         // Act & Assert
         InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
                 () -> customerService.createCustomer(customerDTO));
 
+        // Assert exception message
         assertEquals("Company size is either less than 0 or not given", exception.getMessage());
-        verify(customerRepository, times(1)).findByCustomerEmail(anyString());
+
+        // Verify repository interactions do not occur
+        verify(customerRepository, never()).findByCustomerEmail(anyString());
+        verify(customerRepository, never()).findByCustomerPhoneNumber(anyString());
         verify(customerRepository, never()).save(any());
     }
+
+
 
     @Test
     void createCustomer_ShouldThrowInvalidRequestStateException_WhenAddressIsMissingOrEmpty() {
@@ -263,16 +365,20 @@ class CustomerServiceTest {
         customerDTO.setCompanySize(50);
         customerDTO.setCustomerPhoneNumber("1234567890");
         customerDTO.setStatus("enabled");
-        customerDTO.setAddress("");
+        customerDTO.setAddress(""); // Address is intentionally left empty for the test
 
         // Act & Assert
         InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
                 () -> customerService.createCustomer(customerDTO));
 
+        // Verify exception message
         assertEquals("Please enter the address.", exception.getMessage());
-        verify(customerRepository, times(1)).findByCustomerEmail(anyString());
+
+        // Verify repository interactions
+        verify(customerRepository, never()).findByCustomerEmail(anyString());
         verify(customerRepository, never()).save(any());
     }
+
 
     @Test
     void createCustomer_ShouldThrowInvalidRequestStateException_WhenPhoneNumberIsMissingOrEmpty() {
@@ -283,64 +389,19 @@ class CustomerServiceTest {
         customerDTO.setIndustry("Tech");
         customerDTO.setCompanySize(50);
         customerDTO.setAddress("123 Main Street");
-        customerDTO.setCustomerPhoneNumber(null);
+        customerDTO.setCustomerPhoneNumber(null); // Phone number is intentionally null
 
+        // Act & Assert
         InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
                 () -> customerService.createCustomer(customerDTO));
 
+        // Verify exception message
         assertEquals("Please enter the phone number.", exception.getMessage());
-        verify(customerRepository, times(1)).findByCustomerEmail(anyString());
+
+        // Verify repository interactions
+        verify(customerRepository, never()).findByCustomerEmail(anyString());
         verify(customerRepository, never()).save(any());
     }
-
-    @Test
-    void createCustomer_ShouldThrowInvalidRequestStateException_WhenStatusIsMissingOrEmpty() {
-        // Arrange
-        CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setName("John Doe");
-        customerDTO.setCustomerEmail("test@example.com");
-        customerDTO.setIndustry("Tech");
-        customerDTO.setCompanySize(50);
-        customerDTO.setAddress("123 Main Street");
-        customerDTO.setCustomerPhoneNumber("1234567890");
-        customerDTO.setStatus(null);
-
-        // Act & Assert
-        InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
-                () -> customerService.createCustomer(customerDTO));
-
-        assertEquals("Please enter the status.", exception.getMessage());
-        verify(customerRepository, times(1)).findByCustomerEmail(anyString());
-        verify(customerRepository, never()).save(any());
-    }
-
-    @Test
-    void createCustomer_ShouldThrowInvalidRequestStateException_WhenStatusIsInvalid() {
-        // Arrange
-        CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setName("John Doe");
-        customerDTO.setCustomerEmail("test@example.com");
-        customerDTO.setIndustry("Tech");
-        customerDTO.setCompanySize(50);
-        customerDTO.setAddress("123 Main Street");
-        customerDTO.setCustomerPhoneNumber("1234567890");
-        customerDTO.setStatus("invalid");
-
-        // Act & Assert
-        InvalidRequestStateException exception = assertThrows(InvalidRequestStateException.class,
-                () -> customerService.createCustomer(customerDTO));
-
-        assertEquals("Status should be either 'enabled' or 'disabled'", exception.getMessage());
-        verify(customerRepository, times(1)).findByCustomerEmail(anyString());
-        verify(customerRepository, never()).save(any());
-    }
-
-
-
-
-
-
-
 
     @Test
     void updateCustomer_ShouldUpdateCustomer_WhenCustomerExists() {
@@ -481,7 +542,7 @@ class CustomerServiceTest {
         String name = "John Doe";
         String customerEmail = "john.doe@example.com";
         String industry = "Technology";
-        Integer companySize = 100;
+        int companySize = 100;
         String customerPhoneNumber = "1234567890";
         String status = "enabled";
         String address = "123 Main St";

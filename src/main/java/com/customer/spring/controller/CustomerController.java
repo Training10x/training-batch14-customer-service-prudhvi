@@ -23,12 +23,6 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    @GetMapping("/welcome")
-    @ResponseStatus(HttpStatus.OK)
-    public String welcome(){
-        return ("Hello, welcome to the spring app");
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Map<String, Object>> createCustomer(@RequestBody CustomerDTO customerDTO) {
