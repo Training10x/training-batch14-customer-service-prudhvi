@@ -1,11 +1,13 @@
 package com.customer.spring.service;
 
 import com.customer.spring.entity.Users;
+import com.customer.spring.exception.AuthenticationFailedException;
 import com.customer.spring.exception.ConflictException;
 import com.customer.spring.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +41,16 @@ public class UserService {
     }
 
     public String verify(Users user) {
-        Authentication authentication =
-                authManager
-                        .authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-        if(authentication.isAuthenticated()){
-            return jwtService.generateToken(user.getUsername());
+        try {
+            Authentication authentication = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
+            );
+            if (authentication.isAuthenticated()) {
+                return jwtService.generateToken(user.getUsername());
+            }
+        } catch (AuthenticationException e) {
+            throw new AuthenticationFailedException("Invalid username or password");
         }
-        return "fail";
+        return "Unable to verify";
     }
 }
