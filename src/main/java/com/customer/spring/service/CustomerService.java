@@ -24,9 +24,11 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
-    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper, KafkaProducerService kafka) {
         this.customerRepository = customerRepository;
         this.customerMapper = customerMapper;
+
     }
 
     public long createCustomer(CustomerDTO customerDTO) {
