@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -63,13 +64,18 @@ public class JWTService {
         final Claims claims = extractAllClaims(token);
         return claimResolver.apply(claims);
     }
-    private Claims extractAllClaims(String token){
-        return Jwts.parser()
-                .verifyWith(getKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
+    private Claims extractAllClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(getKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (SignatureException ex) {
+            throw new SignatureException("Invalid JWT signature. Please provide a valid token.", ex);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Error parsing the JWT token: " + ex.getMessage(), ex);
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
