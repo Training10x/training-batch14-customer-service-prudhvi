@@ -126,6 +126,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>customer-service-image</finalName>
 	</build>
 
 </project>
