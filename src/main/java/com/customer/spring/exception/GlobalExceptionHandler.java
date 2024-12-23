@@ -76,7 +76,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> InvalidUsernameorPassword(BadCredentialsException ex) {
+    public ResponseEntity<ErrorResponse> invalidUsernameorPassword(BadCredentialsException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
         errorResponse.setMessage(ex.getMessage());
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ErrorResponse> InvalidPassword(InvalidPasswordException ex) {
+    public ResponseEntity<ErrorResponse> invalidPassword(InvalidPasswordException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
         errorResponse.setMessage(ex.getMessage());
@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationFailedException.class)
-    public ResponseEntity<ErrorResponse> AuthenticationFailed(AuthenticationFailedException ex){
+    public ResponseEntity<ErrorResponse> authenticationFailed(AuthenticationFailedException ex){
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
         errorResponse.setMessage(ex.getMessage());
@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<ErrorResponse> SignatureException(SignatureException ex){
+    public ResponseEntity<ErrorResponse> signatureException(SignatureException ex){
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
         errorResponse.setMessage(ex.getMessage());

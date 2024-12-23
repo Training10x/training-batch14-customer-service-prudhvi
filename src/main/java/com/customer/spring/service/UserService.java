@@ -64,11 +64,9 @@ public class UserService {
     }
 
     public boolean validatePassword(String password) {
-        int minLength = 8;
-        if (password == null || password.length() < minLength) {
-            return false;
+        if(password == null || password.length() < 8){
+            throw new InvalidPasswordException("Password does not meet the required criteria");
         }
-
         boolean hasUppercase = false;
         boolean hasLowercase = false;
         boolean hasDigit = false;
