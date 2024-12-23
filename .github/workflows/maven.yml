@@ -1,11 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
+# This workflow builds, tests, analyzes code quality and coverage, and deploys Docker and Maven artifacts.
 name: Customer Service CI/CD
 
 on:
@@ -16,9 +9,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:13
@@ -32,7 +23,6 @@ jobs:
           --health-cmd="pg_isready -U postgres"
           --health-timeout=30s
           --health-retries=5
-
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -46,6 +36,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -56,8 +47,10 @@ jobs:
           cache: maven
       - name: Run Tests
         run: mvn test
+
   code_quality:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -74,6 +67,7 @@ jobs:
 
   code_coverage:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -91,8 +85,10 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
+    needs: [build, test]
     steps:
-      - name: Build & push Docker image
+      - uses: actions/checkout@v4
+      - name: Build & Push Docker Image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: prudhvi2902/customer-service-image
@@ -101,31 +97,3 @@ jobs:
           dockerfile: Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
