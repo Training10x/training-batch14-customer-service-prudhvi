@@ -2,9 +2,9 @@ name: Customer Service CI/CD
 
 on:
   push:
-    branches: [ "main", "sprint4/feature" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "sprint4/feature" ]
+    branches: [ "main" ]
 
 jobs:
   build:
