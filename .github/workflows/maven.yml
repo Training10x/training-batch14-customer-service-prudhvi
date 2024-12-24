@@ -37,7 +37,7 @@ jobs:
       - name: Run Tests
         run: mvn test
       - name: Analyze Code Quality
-        run: mvn sonar:sonar
+        run: mvn sonar:sonar -Dsonar.organization=prudhvi-nelaturi -Dsonar.projectKey=prudhvi-nelaturi_customer-service
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
