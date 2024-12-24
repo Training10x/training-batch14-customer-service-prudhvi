@@ -36,6 +36,11 @@ jobs:
         run: mvn clean install
       - name: Run Tests
         run: mvn test
+      - name: Analyze Code Quality
+        run: mvn sonar:sonar
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
