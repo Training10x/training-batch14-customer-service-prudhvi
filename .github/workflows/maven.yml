@@ -37,10 +37,9 @@ jobs:
       - name: Run Tests
         run: mvn test
       - name: Analyze Code Quality
-        run: mvn sonar:sonar -Dsonar.organization=prudhvi-nelaturi -Dsonar.projectKey=prudhvi-nelaturi_customer-service
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=prudhvi-nelaturi_customer-service
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
