@@ -40,13 +40,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=prudhvi-nelaturi_customer-service
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: target/site/jacoco/jacoco.xml
-          flags: unittests
-          fail_ci_if_error: true
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
