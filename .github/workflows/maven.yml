@@ -7,8 +7,23 @@ on:
     branches: [ "main", "sprint4/feature", "dev", "hotfix", "release" ]
 
 jobs:
-  checkout_and_java_setup:
+  build:
+
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: springdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-timeout=30s
+          --health-retries=5
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -17,32 +32,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
-  build_and_test:
-    runs-on: ubuntu-latest
-    needs: checkout_and_java_setup
-    steps:
-      - uses: ./.github/actions/use-java-cache@v1  # Use the custom action
       - name: Build with Maven
         run: mvn clean install
       - name: Run Tests
         run: mvn test
-
-  code_quality_analysis:
-    runs-on: ubuntu-latest
-    needs: build_and_test
-    steps:
-      - uses: ./.github/actions/use-java-cache@v1  # Use the custom action
       - name: Analyze Code Quality
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=prudhvi-nelaturi_customer-service
-
-  build_and_push_docker_image:
-    runs-on: ubuntu-latest
-    needs: [build_and_test, code_quality_analysis]
-    steps:
-      - uses: ./.github/actions/use-java-cache@v1  # Use the custom action
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
