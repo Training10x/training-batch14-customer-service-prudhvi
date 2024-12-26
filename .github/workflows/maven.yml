@@ -22,10 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkout_and_java_setup
     steps:
-      - uses: actions/checkout@v4
-      - name: Use pre-built Java environment
-        uses: ./.github/actions/use-java-cache@v1  # Assuming this is a custom action in your repo
-
+      - uses: ./.github/actions/use-java-cache@v1  # Use the custom action
       - name: Build with Maven
         run: mvn clean install
       - name: Run Tests
@@ -33,11 +30,9 @@ jobs:
 
   code_quality_analysis:
     runs-on: ubuntu-latest
-    needs: checkout_and_java_setup
+    needs: build_and_test
     steps:
-      - uses: actions/checkout@v4
-      - name: Use pre-built Java environment
-        uses: ./.github/actions/use-java-cache@v1  # Assuming this is a custom action in your repo
+      - uses: ./.github/actions/use-java-cache@v1  # Use the custom action
       - name: Analyze Code Quality
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -45,11 +40,9 @@ jobs:
 
   build_and_push_docker_image:
     runs-on: ubuntu-latest
-    needs: [checkout_and_java_setup, build_and_test, code_quality_analysis]
+    needs: [build_and_test, code_quality_analysis]
     steps:
-      - uses: actions/checkout@v4
-      - name: Use pre-built Java environment
-        uses: ./.github/actions/use-java-cache@v1  # Assuming this is a custom action in your repo
+      - uses: ./.github/actions/use-java-cache@v1  # Use the custom action
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
