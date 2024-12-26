@@ -36,6 +36,10 @@ jobs:
         run: mvn clean install
       - name: Run Tests
         run: mvn test
+      - name: List JaCoCo Report Files
+        run: |
+          cd ${{ matrix.service }}/target/site/jacoco
+          ls -l
       - name: Analyze Code Quality
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
