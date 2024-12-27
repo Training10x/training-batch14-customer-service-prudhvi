@@ -23,10 +23,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -142,10 +139,11 @@ class CustomerServiceTest {
                 .thenReturn(customerDTO);
 
         // Act
-        long id = customerService.createCustomer(customerDTO);
+        Map<String, Object> response = customerService.createCustomer(customerDTO);
+
 
         // Assert
-        assertEquals(1L, id);
+        assertEquals(1L, response.get("id"));
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
         verify(customerRepository, times(1)).save(customerEntity);
     }
@@ -179,10 +177,10 @@ class CustomerServiceTest {
                 .thenReturn(customerDTO);
 
         // Act
-        long id = customerService.createCustomer(customerDTO);
+        Map<String, Object> response = customerService.createCustomer(customerDTO);
 
         // Assert
-        assertEquals(1L, id);
+        assertEquals(1L, response.get("id"));
         verify(customerRepository, times(1)).findByCustomerPhoneNumber("1234567890");
         verify(customerRepository, times(1)).save(customerEntity);
     }
@@ -297,10 +295,10 @@ class CustomerServiceTest {
                 .thenReturn(customerDTO);
 
         // Act
-        long id = customerService.createCustomer(customerDTO);
+        Map<String, Object> response = customerService.createCustomer(customerDTO);
 
         // Assert
-        assertEquals(1L, id);
+        assertEquals(1L, response.get("id"));
         assertEquals("defaultAddress", customerDTO.getAddress());
         assertEquals("defaultOther_Cust_data", customerDTO.getOtherCustomerData());
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
@@ -493,10 +491,11 @@ class CustomerServiceTest {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(existingCustomer));
         when(customerRepository.save(existingCustomer)).thenReturn(updatedCustomer);
 
-        String response = customerService.statusToggle(customerId, newStatus);
-
+        Map<String, Object> response = customerService.statusToggle(customerId, newStatus);
+        Map<String, Object> expectedResponse = new HashMap<>();
+        expectedResponse.put("status", "Customer details " +newStatus+ " successfully");
         assertNotNull(response);
-        assertEquals("Customer details enabled successfully", response);
+        assertEquals(expectedResponse, response);
         verify(customerRepository, times(1)).findById(customerId);
         verify(customerRepository, times(1)).save(existingCustomer);
     }

@@ -12,6 +12,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -34,7 +36,7 @@ public class UserService {
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
 
-    public User register(User user){
+    public Map<String, Object> register(User user){
 
         if (!validatePassword(user.getPassword())) {
             throw new InvalidPasswordException("Password does not meet the required criteria");
@@ -46,21 +48,31 @@ public class UserService {
 
         user.setPassword(encoder.encode(user.getPassword()));
         kafkaProd.sendMessage("user-topic", "Message sent from Customer API register end point");
-        return userRepository.save(user);
+        User registeredUser = userRepository.save(user);
+        Map<String, Object> structuredResponse = new HashMap<>();
+        structuredResponse.put("message", "Registered Successfully");
+        structuredResponse.put("id", registeredUser.getId());
+        structuredResponse.put("username", registeredUser.getUsername());
+        return structuredResponse;
     }
 
-    public String verify(User user) {
+    public Map<String, Object> verify(User user) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
             );
             if (authentication.isAuthenticated()) {
-                return jwtService.generateToken(user.getUsername());
+                String token = jwtService.generateToken(user.getUsername());
+                Map<String, Object> structuredResponse = new HashMap<>();
+                structuredResponse.put("user", user.getUsername());
+                structuredResponse.put("message", "Login successful");
+                structuredResponse.put("token", token);
+                return structuredResponse;
             }
         } catch (AuthenticationException e) {
             throw new AuthenticationFailedException("Invalid username or password");
         }
-        return "Unable to verify";
+        throw new AuthenticationFailedException("Unable to verify");
     }
 
     public boolean validatePassword(String password) {

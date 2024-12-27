@@ -36,15 +36,18 @@ class CustomerControllerTest {
         CustomerDTO customerDTO = new CustomerDTO();
         customerDTO.setName("John Doe");
         customerDTO.setCustomerEmail("john.doe@example.com");
-        long expectedId = 1L;
 
-        when(customerService.createCustomer(customerDTO)).thenReturn(expectedId);
+        Map<String, Object> expectedResponse = new HashMap<>();
+        expectedResponse.put("id", 1L);
+        expectedResponse.put("message", "Customer created successfully");
+
+        when(customerService.createCustomer(customerDTO)).thenReturn(expectedResponse);
 
         ResponseEntity<Map<String, Object>> response = customerController.createCustomer(customerDTO);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(expectedId, response.getBody().get("id"));
+        assertEquals(1L, response.getBody().get("id"));
         assertEquals("Customer created successfully", response.getBody().get("message"));
         verify(customerService, times(1)).createCustomer(customerDTO);
     }
@@ -78,19 +81,17 @@ class CustomerControllerTest {
 
     @Test
     void statusToggle_ShouldReturnEnabledMessage_WhenStatusIsEnabled() {
-        // Arrange
         long customerId = 1L;
         String newStatus = "enabled";
         String expectedMessage = "Customer details enabled successfully";
         Map<String, Object> expectedResponseMap = new HashMap<>();
         expectedResponseMap.put("status", expectedMessage);
 
-        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedMessage);
+        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedResponseMap);
 
-        // Act
+
         ResponseEntity<Map<String, Object>> response = customerController.statusToggle(customerId, newStatus);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(expectedResponseMap, response.getBody());
@@ -100,19 +101,16 @@ class CustomerControllerTest {
 
     @Test
     void statusToggle_ShouldReturnDisabledMessage_WhenStatusIsDisabled() {
-        // Arrange
         long customerId = 2L;
         String newStatus = "disabled";
         String expectedMessage = "Customer details disabled successfully";
         Map<String, Object> expectedResponseMap = new HashMap<>();
         expectedResponseMap.put("status", expectedMessage);
 
-        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedMessage);
+        when(customerService.statusToggle(customerId, newStatus)).thenReturn(expectedResponseMap);
 
-        // Act
         ResponseEntity<Map<String, Object>> response = customerController.statusToggle(customerId, newStatus);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(expectedResponseMap, response.getBody());

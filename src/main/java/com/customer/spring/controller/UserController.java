@@ -21,22 +21,15 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
-        User registered = userService.register(user);
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Registered Successfully");
-        response.put("id", registered.getId());
-        response.put("username", registered.getUsername());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService.register(user));
     }
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user){
-        String token = userService.verify(user);
-        Map<String, Object> response = new HashMap<>();
-        response.put("user", user.getUsername());
-        response.put("message", "Login successful");
-        response.put("token", token);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService.verify(user));
     }
 }

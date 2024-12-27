@@ -31,13 +31,16 @@ public class CustomerService {
 
     }
 
-    public long createCustomer(CustomerDTO customerDTO) {
+    public Map<String, Object> createCustomer(CustomerDTO customerDTO) {
         validateCustomerDTO(customerDTO);
 
         Customer customer = customerMapper.toEntity(customerDTO);
 
         CustomerDTO result = customerMapper.toDto(customerRepository.save(customer));
-        return result.getId();
+        Map<String, Object> structuredResponse = new HashMap<>();
+        structuredResponse.put("id",result.getId());
+        structuredResponse.put("message", "Customer created successfully");
+        return structuredResponse;
     }
 
     public CustomerDTO updateCustomer(long id, CustomerDTO customerDTO) {
@@ -52,7 +55,7 @@ public class CustomerService {
         return customerMapper.toDto(customerRepository.save(customer));
     }
 
-    public String statusToggle(long id, String status){
+    public Map<String, Object> statusToggle(long id, String status){
 
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Customer with ID " + id + " not found in the Database"));
@@ -65,7 +68,9 @@ public class CustomerService {
 
 
         customerRepository.save(customer);
-        return "Customer details " +status+ " successfully";
+        Map<String, Object> structuredResponse = new HashMap<>();
+        structuredResponse.put("status", "Customer details " +status+ " successfully");
+        return structuredResponse;
 
     }
 
