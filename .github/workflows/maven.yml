@@ -38,6 +38,7 @@ jobs:
     steps:
       - name: Build with Maven
         run: mvn clean install
+        working-directory: ../  # Go one directory back to find pom.xml
 
   test:
     runs-on: ubuntu-latest
@@ -45,6 +46,7 @@ jobs:
     steps:
       - name: Run Tests
         run: mvn test
+        working-directory: ../  # Go one directory back to find pom.xml
 
   coverage:
     runs-on: ubuntu-latest
@@ -52,6 +54,7 @@ jobs:
     steps:
       - name: Generate Code Coverage Report
         run: mvn jacoco:report
+        working-directory: ../  # Go one directory back to find pom.xml
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
@@ -67,6 +70,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=prudhvi-nelaturi_customer-service
+        working-directory: ../  # Go one directory back to find pom.xml
 
   docker:
     runs-on: ubuntu-latest
@@ -81,3 +85,4 @@ jobs:
           dockerfile: Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+        working-directory: ../  # Go one directory back to find pom.xml
