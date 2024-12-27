@@ -22,18 +22,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authManager;
     private final JWTService jwtService;
-    private KafkaProducerService kafkaProd;
+
 
     public UserService(UserRepository userRepository,
                        AuthenticationManager authManager,
-                       JWTService jwtService, KafkaProducerService kafka) {
+                       JWTService jwtService) {
         this.userRepository = userRepository;
         this.authManager = authManager;
         this.jwtService = jwtService;
-        this.kafkaProd = kafka;
+
     }
 
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
 
     public Map<String, Object> register(User user){
@@ -47,7 +47,6 @@ public class UserService {
         }
 
         user.setPassword(encoder.encode(user.getPassword()));
-        kafkaProd.sendMessage("user-topic", "Message sent from Customer API register end point");
         User registeredUser = userRepository.save(user);
         Map<String, Object> structuredResponse = new HashMap<>();
         structuredResponse.put("message", "Registered Successfully");
