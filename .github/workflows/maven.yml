@@ -36,6 +36,16 @@ jobs:
         run: mvn clean install
       - name: Run Tests
         run: mvn test
+
+      - name: Generate Code Coverage Report
+        run: mvn jacoco:report
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
       - name: Analyze Code Quality
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
