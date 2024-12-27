@@ -1,7 +1,7 @@
 package com.customer.spring.service;
 
 import com.customer.spring.entity.UserPrincipal;
-import com.customer.spring.entity.Users;
+import com.customer.spring.entity.User;
 import com.customer.spring.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,11 +21,11 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Users> optionalUser = userRepository.findByUsername(username);
+        Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
-        Users user = optionalUser.get();
+        User user = optionalUser.get();
         return new UserPrincipal(user);
     }
 

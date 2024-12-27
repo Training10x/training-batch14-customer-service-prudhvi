@@ -1,6 +1,6 @@
 package com.customer.spring.controller;
 
-import com.customer.spring.entity.Users;
+import com.customer.spring.entity.User;
 import com.customer.spring.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,11 +30,11 @@ class UserControllerTest {
 
     @Test
     void testRegister() {
-        Users user = new Users();
+        User user = new User();
         user.setId(Math.toIntExact(1L));
         user.setUsername("john_doe");
 
-        when(userService.register(any(Users.class))).thenReturn(user);
+        when(userService.register(any(User.class))).thenReturn(user);
 
         ResponseEntity<Map<String, Object>> response = userController.register(user);
 
@@ -44,15 +44,15 @@ class UserControllerTest {
         assertEquals(Math.toIntExact(1L), response.getBody().get("id"));
         assertEquals("john_doe", response.getBody().get("username"));
 
-        verify(userService, times(1)).register(any(Users.class));
+        verify(userService, times(1)).register(any(User.class));
     }
 
     @Test
     void testLogin() {
-        Users user = new Users();
+        User user = new User();
         user.setUsername("john_doe");
 
-        when(userService.verify(any(Users.class))).thenReturn("mockToken");
+        when(userService.verify(any(User.class))).thenReturn("mockToken");
 
         ResponseEntity<Map<String, Object>> response = userController.login(user);
 
@@ -62,6 +62,6 @@ class UserControllerTest {
         assertEquals("mockToken", response.getBody().get("token"));
         assertEquals("john_doe", response.getBody().get("user"));
 
-        verify(userService, times(1)).verify(any(Users.class));
+        verify(userService, times(1)).verify(any(User.class));
     }
 }

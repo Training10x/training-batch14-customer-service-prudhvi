@@ -1,6 +1,6 @@
 package com.customer.spring.controller;
 
-import com.customer.spring.entity.Users;
+import com.customer.spring.entity.User;
 import com.customer.spring.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +20,8 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody Users user) {
-        Users registered = userService.register(user);
+    public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
+        User registered = userService.register(user);
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Registered Successfully");
         response.put("id", registered.getId());
@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Users user){
+    public ResponseEntity<Map<String, Object>> login(@RequestBody User user){
         String token = userService.verify(user);
         Map<String, Object> response = new HashMap<>();
         response.put("user", user.getUsername());

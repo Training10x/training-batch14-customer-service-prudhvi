@@ -1,6 +1,6 @@
 package com.customer.spring.service;
 
-import com.customer.spring.entity.Users;
+import com.customer.spring.entity.User;
 import com.customer.spring.exception.AuthenticationFailedException;
 import com.customer.spring.exception.ConflictException;
 import com.customer.spring.exception.InvalidPasswordException;
@@ -34,12 +34,12 @@ public class UserService {
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
 
-    public Users register(Users user){
+    public User register(User user){
 
         if (!validatePassword(user.getPassword())) {
             throw new InvalidPasswordException("Password does not meet the required criteria");
         }
-        Optional<Users> existingUser = userRepository.findByUsername(user.getUsername());
+        Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
         if (existingUser.isPresent()) {
             throw new ConflictException("username already in use: " + user.getUsername());
         }
@@ -49,7 +49,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public String verify(Users user) {
+    public String verify(User user) {
         try {
             Authentication authentication = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
