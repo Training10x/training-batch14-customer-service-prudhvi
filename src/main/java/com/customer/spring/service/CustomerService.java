@@ -37,6 +37,7 @@ public class CustomerService {
         Customer customer = customerMapper.toEntity(customerDTO);
 
         CustomerDTO result = customerMapper.toDto(customerRepository.save(customer));
+
         Map<String, Object> structuredResponse = new HashMap<>();
         structuredResponse.put("id",result.getId());
         structuredResponse.put("message", "Customer created successfully");
@@ -68,6 +69,7 @@ public class CustomerService {
 
 
         customerRepository.save(customer);
+
         Map<String, Object> structuredResponse = new HashMap<>();
         structuredResponse.put("status", "Customer details " +status+ " successfully");
         return structuredResponse;
