@@ -7,7 +7,8 @@ on:
     branches: [ "main", "sprint4/feature", "dev", "hotfix", "release" ]
 
 jobs:
-  setup:
+  build:
+
     runs-on: ubuntu-latest
 
     services:
@@ -31,25 +32,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
-  build:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
       - name: Build with Maven
         run: mvn clean install
-
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Run Tests
         run: mvn test
 
-  coverage:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
       - name: Generate Code Coverage Report
         run: mvn jacoco:report
 
@@ -59,19 +46,10 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
 
-  code_quality:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
       - name: Analyze Code Quality
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=prudhvi-nelaturi_customer-service
-
-  docker:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
