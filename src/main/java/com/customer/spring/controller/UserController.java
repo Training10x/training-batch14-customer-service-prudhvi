@@ -1,12 +1,10 @@
 package com.customer.spring.controller;
 
-import com.customer.spring.entity.Users;
+import com.customer.spring.entity.User;
 import com.customer.spring.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -20,23 +18,16 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody Users user) {
-        Users registered = userService.register(user);
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Registered Successfully");
-        response.put("id", registered.getId());
-        response.put("username", registered.getUsername());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService.register(user));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Users user){
-        String token = userService.verify(user);
-        Map<String, Object> response = new HashMap<>();
-        response.put("user", user.getUsername());
-        response.put("message", "Login successful");
-        response.put("token", token);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<Map<String, Object>> login(@RequestBody User user){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService.verify(user));
     }
 }

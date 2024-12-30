@@ -1,9 +1,11 @@
 package com.customer.spring.service;
 
 import com.customer.spring.dto.CustomerDTO;
+import com.customer.spring.dto.SavedCustomerResponse;
 import com.customer.spring.entity.Customer;
 import com.customer.spring.entity.CustomerSearchCriteria;
 import com.customer.spring.exception.ConflictException;
+import com.customer.spring.kafka.KafkaProducerService;
 import com.customer.spring.mapper.CustomerMapper;
 import com.customer.spring.repository.CustomerRepository;
 import com.sun.jdi.request.InvalidRequestStateException;
@@ -23,10 +25,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +38,9 @@ class CustomerServiceTest {
 
     @Mock
     private CustomerMapper customerMapper;
+
+    @Mock
+    private KafkaProducerService kafkaProducer;
 
     @InjectMocks
     private CustomerService customerService;
@@ -140,12 +142,13 @@ class CustomerServiceTest {
                 .thenReturn(customerEntity);
         when(customerMapper.toDto(any(Customer.class)))
                 .thenReturn(customerDTO);
-
+        doNothing().when(kafkaProducer).sendMessage(anyString(), any());
         // Act
-        long id = customerService.createCustomer(customerDTO);
+        SavedCustomerResponse response = customerService.createCustomer(customerDTO);
+
 
         // Assert
-        assertEquals(1L, id);
+        assertEquals(1L, response.getId());
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
         verify(customerRepository, times(1)).save(customerEntity);
     }
@@ -177,12 +180,12 @@ class CustomerServiceTest {
                 .thenReturn(customerEntity);
         when(customerMapper.toDto(any(Customer.class)))
                 .thenReturn(customerDTO);
-
+        doNothing().when(kafkaProducer).sendMessage(anyString(), any());
         // Act
-        long id = customerService.createCustomer(customerDTO);
+        SavedCustomerResponse customerResponse = customerService.createCustomer(customerDTO);
 
         // Assert
-        assertEquals(1L, id);
+        assertEquals(1L, customerResponse.getId());
         verify(customerRepository, times(1)).findByCustomerPhoneNumber("1234567890");
         verify(customerRepository, times(1)).save(customerEntity);
     }
@@ -295,12 +298,12 @@ class CustomerServiceTest {
                 .thenReturn(customerEntity);
         when(customerMapper.toDto(any(Customer.class)))
                 .thenReturn(customerDTO);
-
+        doNothing().when(kafkaProducer).sendMessage(anyString(), any());
         // Act
-        long id = customerService.createCustomer(customerDTO);
+        SavedCustomerResponse response = customerService.createCustomer(customerDTO);
 
         // Assert
-        assertEquals(1L, id);
+        assertEquals(1L, response.getId());
         assertEquals("defaultAddress", customerDTO.getAddress());
         assertEquals("defaultOther_Cust_data", customerDTO.getOtherCustomerData());
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
@@ -493,10 +496,11 @@ class CustomerServiceTest {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(existingCustomer));
         when(customerRepository.save(existingCustomer)).thenReturn(updatedCustomer);
 
-        String response = customerService.statusToggle(customerId, newStatus);
-
+        Map<String, Object> response = customerService.statusToggle(customerId, newStatus);
+        Map<String, Object> expectedResponse = new HashMap<>();
+        expectedResponse.put("status", "Customer details " +newStatus+ " successfully");
         assertNotNull(response);
-        assertEquals("Customer details enabled successfully", response);
+        assertEquals(expectedResponse, response);
         verify(customerRepository, times(1)).findById(customerId);
         verify(customerRepository, times(1)).save(existingCustomer);
     }

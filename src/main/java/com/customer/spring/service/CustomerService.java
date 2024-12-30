@@ -1,9 +1,11 @@
 package com.customer.spring.service;
 
 import com.customer.spring.dto.CustomerDTO;
+import com.customer.spring.dto.SavedCustomerResponse;
 import com.customer.spring.entity.Customer;
 import com.customer.spring.entity.CustomerSearchCriteria;
 import com.customer.spring.exception.ConflictException;
+import com.customer.spring.kafka.KafkaProducerService;
 import com.customer.spring.mapper.CustomerMapper;
 import com.customer.spring.repository.CustomerRepository;
 import com.sun.jdi.request.InvalidRequestStateException;
@@ -23,21 +25,28 @@ import java.util.function.Consumer;
 public class CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final KafkaProducerService kafkaProducer;
 
 
-    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper, KafkaProducerService kafkaProducer) {
         this.customerRepository = customerRepository;
         this.customerMapper = customerMapper;
+        this.kafkaProducer = kafkaProducer;
 
     }
 
-    public long createCustomer(CustomerDTO customerDTO) {
+    public SavedCustomerResponse createCustomer(CustomerDTO customerDTO) {
         validateCustomerDTO(customerDTO);
 
         Customer customer = customerMapper.toEntity(customerDTO);
 
-        CustomerDTO result = customerMapper.toDto(customerRepository.save(customer));
-        return result.getId();
+        CustomerDTO savedCustomer = customerMapper.toDto(customerRepository.save(customer));
+
+        kafkaProducer.sendMessage("customer-to-candidate", savedCustomer.getId());
+        SavedCustomerResponse customerResponse = new SavedCustomerResponse();
+        customerResponse.setId(savedCustomer.getId());
+        customerResponse.setMessage("Customer created successfully");
+        return customerResponse;
     }
 
     public CustomerDTO updateCustomer(long id, CustomerDTO customerDTO) {
@@ -52,7 +61,7 @@ public class CustomerService {
         return customerMapper.toDto(customerRepository.save(customer));
     }
 
-    public String statusToggle(long id, String status){
+    public Map<String, Object> statusToggle(long id, String status){
 
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Customer with ID " + id + " not found in the Database"));
@@ -65,7 +74,10 @@ public class CustomerService {
 
 
         customerRepository.save(customer);
-        return "Customer details " +status+ " successfully";
+
+        Map<String, Object> structuredResponse = new HashMap<>();
+        structuredResponse.put("status", "Customer details " +status+ " successfully");
+        return structuredResponse;
 
     }
 

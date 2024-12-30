@@ -8,9 +8,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class UserPrincipal implements UserDetails {
-    private final transient Users user;
+    private final transient User user;
 
-    public UserPrincipal(Users user) {
+    public UserPrincipal(User user) {
         this.user = user;
     }
 
