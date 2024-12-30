@@ -2,6 +2,7 @@ package com.customer.spring.controller;
 
 
 import com.customer.spring.dto.CustomerDTO;
+import com.customer.spring.dto.SavedCustomerResponse;
 import com.customer.spring.entity.CustomerSearchCriteria;
 import com.customer.spring.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class CustomerController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Map<String, Object>> createCustomer(@RequestBody CustomerDTO customerDTO) {
+    public ResponseEntity<SavedCustomerResponse> createCustomer(@RequestBody CustomerDTO customerDTO) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(customerService.createCustomer(customerDTO));

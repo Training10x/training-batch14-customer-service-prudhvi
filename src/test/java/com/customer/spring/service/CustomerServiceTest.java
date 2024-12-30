@@ -1,9 +1,11 @@
 package com.customer.spring.service;
 
 import com.customer.spring.dto.CustomerDTO;
+import com.customer.spring.dto.SavedCustomerResponse;
 import com.customer.spring.entity.Customer;
 import com.customer.spring.entity.CustomerSearchCriteria;
 import com.customer.spring.exception.ConflictException;
+import com.customer.spring.kafka.KafkaProducerService;
 import com.customer.spring.mapper.CustomerMapper;
 import com.customer.spring.repository.CustomerRepository;
 import com.sun.jdi.request.InvalidRequestStateException;
@@ -36,6 +38,9 @@ class CustomerServiceTest {
 
     @Mock
     private CustomerMapper customerMapper;
+
+    @Mock
+    private KafkaProducerService kafkaProducer;
 
     @InjectMocks
     private CustomerService customerService;
@@ -137,13 +142,13 @@ class CustomerServiceTest {
                 .thenReturn(customerEntity);
         when(customerMapper.toDto(any(Customer.class)))
                 .thenReturn(customerDTO);
-
+        doNothing().when(kafkaProducer).sendMessage(anyString(), any());
         // Act
-        Map<String, Object> response = customerService.createCustomer(customerDTO);
+        SavedCustomerResponse response = customerService.createCustomer(customerDTO);
 
 
         // Assert
-        assertEquals(1L, response.get("id"));
+        assertEquals(1L, response.getId());
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");
         verify(customerRepository, times(1)).save(customerEntity);
     }
@@ -175,12 +180,12 @@ class CustomerServiceTest {
                 .thenReturn(customerEntity);
         when(customerMapper.toDto(any(Customer.class)))
                 .thenReturn(customerDTO);
-
+        doNothing().when(kafkaProducer).sendMessage(anyString(), any());
         // Act
-        Map<String, Object> response = customerService.createCustomer(customerDTO);
+        SavedCustomerResponse customerResponse = customerService.createCustomer(customerDTO);
 
         // Assert
-        assertEquals(1L, response.get("id"));
+        assertEquals(1L, customerResponse.getId());
         verify(customerRepository, times(1)).findByCustomerPhoneNumber("1234567890");
         verify(customerRepository, times(1)).save(customerEntity);
     }
@@ -293,12 +298,12 @@ class CustomerServiceTest {
                 .thenReturn(customerEntity);
         when(customerMapper.toDto(any(Customer.class)))
                 .thenReturn(customerDTO);
-
+        doNothing().when(kafkaProducer).sendMessage(anyString(), any());
         // Act
-        Map<String, Object> response = customerService.createCustomer(customerDTO);
+        SavedCustomerResponse response = customerService.createCustomer(customerDTO);
 
         // Assert
-        assertEquals(1L, response.get("id"));
+        assertEquals(1L, response.getId());
         assertEquals("defaultAddress", customerDTO.getAddress());
         assertEquals("defaultOther_Cust_data", customerDTO.getOtherCustomerData());
         verify(customerRepository, times(1)).findByCustomerEmail("test@example.com");

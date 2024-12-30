@@ -1,6 +1,7 @@
 package com.customer.spring.controller;
 
 import com.customer.spring.dto.CustomerDTO;
+import com.customer.spring.dto.SavedCustomerResponse;
 import com.customer.spring.entity.CustomerSearchCriteria;
 import com.customer.spring.service.CustomerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,18 +38,18 @@ class CustomerControllerTest {
         customerDTO.setName("John Doe");
         customerDTO.setCustomerEmail("john.doe@example.com");
 
-        Map<String, Object> expectedResponse = new HashMap<>();
-        expectedResponse.put("id", 1L);
-        expectedResponse.put("message", "Customer created successfully");
+        SavedCustomerResponse expectedResponse = new SavedCustomerResponse();
+        expectedResponse.setId(1L);
+        expectedResponse.setMessage("Customer created successfully");
 
         when(customerService.createCustomer(customerDTO)).thenReturn(expectedResponse);
 
-        ResponseEntity<Map<String, Object>> response = customerController.createCustomer(customerDTO);
+        ResponseEntity<SavedCustomerResponse> response = customerController.createCustomer(customerDTO);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(1L, response.getBody().get("id"));
-        assertEquals("Customer created successfully", response.getBody().get("message"));
+        assertEquals(1L, response.getBody().getId());
+        assertEquals("Customer created successfully", response.getBody().getMessage());
         verify(customerService, times(1)).createCustomer(customerDTO);
     }
 
